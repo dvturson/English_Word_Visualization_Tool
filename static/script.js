@@ -1,7 +1,7 @@
 // References
 const input = document.getElementById("input");
 const list = document.getElementById("suggestions");
-const image = document.getElementById("image");
+const imageContainer = document.getElementById("images");
 
 
 // Getting the last word
@@ -29,7 +29,7 @@ function showSuggestions(words) {
 // Fetch image
 async function fetchImage(word) {
     try {
-        const res = await fetch(`/fetch?word=${encodeURIComponent(word)}`);
+        const res = await fetch(`/fetch_image?word=${encodeURIComponent(word)}`);
         const data = await res.json();
         return data.img;
     } catch {
@@ -42,6 +42,7 @@ input.addEventListener("input", async () => {
     const lastWord = getLastWord(input.value);
     if (!lastWord) {
         list.innerHTML = ""; // cleared
+        imageContainer.innerHTML = "";
         return;
     }
 
@@ -52,17 +53,22 @@ input.addEventListener("input", async () => {
 
 // When space bar
 input.addEventListener("keyup", async (event) => {
-    if (event.key === ' ') {
-        const word = getLastWord(input.value);
+    if (event.key === 'Enter') {
+        const full_text = input.value.trim();
+        if (!full_text)
+            return;
 
-        // Get / update <img>
-        const imgSrc = await fetchImage(word);
-        const image = document.getElementById("image")
-        if (imgSrc) {
-            image.src = imgSrc;
-            image.style.display = "block";
-        } else {
-            image.style.display = "none";
+        const words = full_text.split(/\s+/);
+        imageContainer.innerHTML = "";
+
+        for (const word of words) {
+            const imgSrc = await fetchImage(word);
+            if (imgSrc) {
+                const img = document.createElement("img");
+                img.src = imgSrc;
+                img.alt = word;
+                imageContainer.appendChild(img);
+            }
         }
     }
 });
